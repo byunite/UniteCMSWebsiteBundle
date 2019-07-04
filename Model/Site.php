@@ -13,9 +13,14 @@ class Site
     const GENERIC_SITE_TEMPLATE = 'generic';
 
     /**
-     * @var string $apiKey
+     * @var string $secretApiKey
      */
-    protected $apiKey;
+    protected $secretApiKey;
+
+    /**
+     * @var string $publicApiKey
+     */
+    protected $publicApiKey;
 
     /**
      * @var string|null $currentSlug
@@ -47,9 +52,10 @@ class Site
      */
     protected $meta_description = null;
 
-    public function __construct(string $identifier, string $apiKey)
+    public function __construct(string $identifier, string $secretApiKey, string $publicApiKey)
     {
-        $this->apiKey = $apiKey;
+        $this->secretApiKey = $secretApiKey;
+        $this->publicApiKey = $publicApiKey;
         $this->pages = new ArrayCollection();
         $this->identifier = $identifier;
     }
@@ -81,18 +87,36 @@ class Site
     /**
      * @return string
      */
-    public function getApiKey(): string
+    public function getSecretApiKey(): string
     {
-        return $this->apiKey;
+        return $this->secretApiKey;
     }
 
     /**
-     * @param string $apiKey
+     * @param string $secretApiKey
      * @return Site
      */
-    public function setApiKey(string $apiKey): self
+    public function setSecretApiKey(string $secretApiKey): self
     {
-        $this->apiKey = $apiKey;
+        $this->secretApiKey = $secretApiKey;
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getPublicApiKey(): string
+    {
+        return $this->publicApiKey;
+    }
+
+    /**
+     * @param string $publicApiKey
+     * @return Site
+     */
+    public function setPublicApiKey(string $publicApiKey): self
+    {
+        $this->publicApiKey = $publicApiKey;
         return $this;
     }
 

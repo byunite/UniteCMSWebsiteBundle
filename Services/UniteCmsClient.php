@@ -3,6 +3,7 @@
 namespace Unite\CMSWebsiteBundle\Services;
 
 use Symfony\Contracts\HttpClient\HttpClientInterface;
+use Unite\CMSWebsiteBundle\Model\Site;
 
 class UniteCmsClient
 {
@@ -47,5 +48,22 @@ class UniteCmsClient
                 ],
             ]
         )->getContent());
+    }
+
+    /**
+     * @param \Unite\CMSWebsiteBundle\Model\Site $site
+     * @param string $domain
+     * @param string $query
+     * @param array $variables
+     *
+     * @return object
+     *
+     * @throws \Symfony\Contracts\HttpClient\Exception\ClientExceptionInterface
+     * @throws \Symfony\Contracts\HttpClient\Exception\RedirectionExceptionInterface
+     * @throws \Symfony\Contracts\HttpClient\Exception\ServerExceptionInterface
+     * @throws \Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface
+     */
+    public function siteRequest(Site $site, string $domain, string $query, array $variables = []) {
+        return $this->request($site->getIdentifier(), $domain, $site->getSecretApiKey(), $query, $variables);
     }
 }

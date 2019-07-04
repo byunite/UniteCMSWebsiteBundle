@@ -99,7 +99,7 @@ class SiteManager
         foreach($this->sitesMapping as $identifier => $siteMap) {
             if($this->matchHost($host, $identifier, $siteMap['hosts'] ?? [])) {
                 return $this->loadSiteDetails(
-                    new Site($identifier, $siteMap['api_key']),
+                    new Site($identifier, $siteMap['secret_api_key'], $siteMap['public_api_key']),
                     $this->appDebug
                 );
             }
@@ -129,7 +129,7 @@ class SiteManager
                 $extract = [];
                 preg_match('/PageContentBlocksBlock([A-Z][_a-z]+)Variant/', $type->name, $extract);
                 return count($extract) == 2 ? strtolower($extract[1]) : null;
-            }, $this->client->request($site->getIdentifier(), 'campaign', $site->getApiKey(), 'query {
+            }, $this->client->siteRequest($site, 'campaign', 'query {
               __type(name: "VariantsFieldInterface") {
                 possibleTypes {
                       name
@@ -138,7 +138,7 @@ class SiteManager
             }')->data->__type->possibleTypes));
 
             // Get all pages with all content, using only block types for this site that are available.
-            $response = $this->client->request($site->getIdentifier(), 'campaign', $site->getApiKey(), sprintf('query($sort: [SortInput]) {
+            $response = $this->client->siteRequest($site, 'campaign', sprintf('query($sort: [SortInput]) {
                 
                 SiteSetting {
                     title,
