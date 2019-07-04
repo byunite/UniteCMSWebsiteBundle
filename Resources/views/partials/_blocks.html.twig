@@ -1,0 +1,7 @@
+{% for block in blocks %}
+    {% include [
+        'site/' ~ site.customTemplate  ~ '/contentBlocks/' ~ block.template,
+        'site/' ~ site.template ~ '/contentBlocks/' ~ block.template,
+        '@UniteCMSWebsite/partials/_content-block.html.twig'
+        ] with block.parameter %}
+{% endfor %}

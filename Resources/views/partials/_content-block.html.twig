@@ -1,0 +1,12 @@
+{% block tag_start %}<section class="content-block {{ block.type }}">{% endblock %}
+{% block block %}
+    {% if app.debug %}
+        <div class="empty">
+            <p class="empty-title h5">Block <strong>{{ block }}</strong> not implemented yet!</p>
+            <div class="text-left">{{ dump(block) }}</div>
+        </div>
+    {% else %}
+        <!-- Not implemented -->
+    {% endif %}
+{% endblock %}
+{% block tag_end %}</section>{% endblock %}

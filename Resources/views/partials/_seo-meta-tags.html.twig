@@ -1,0 +1,24 @@
+{% set title = title is defined ? title :
+    (site.currentPage ?
+        ((site.currentPage.meta_title is defined and site.currentPage.meta_title ? site.currentPage.meta_title : site.currentPage) ~ ' | ' ~ site)
+        : site
+    )
+%}
+{% set description = site.currentPage and site.currentPage.metaDescription is defined and site.currentPage.metaDescription ? site.currentPage.metaDescription : site.metaDescription %}
+{% set image = site.currentPage and site.currentPage.metaImage is defined and site.currentPage.metaImage ? site.currentPage.metaImage : site.metaImage %}
+<title>{{ title }}</title>
+<meta name="title" content="{{ title }}">
+<meta property="og:site_name" content="{{ title }}">
+<meta property="og:title" content="{{ title }}">
+<meta name="twitter:title" content="{{ title }}">
+<meta property="og:type" content="website">
+<meta property="og:url" content="{{ app.request.uri }}">
+{% if description %}
+    <meta name="description" content="{{ description }}">
+    <meta property="og:description" content="{{ description }}">
+    <meta name="twitter:description" content="{{ description }}">
+{% endif %}
+{% if image %}
+    <meta property="og:image" content="{{ image }}">
+    <meta name="twitter:image" content="{{ image }}">
+{% endif %}

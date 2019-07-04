@@ -1,0 +1,32 @@
+{
+    "name": "unite/cms-website-bundle",
+    "type": "symfony-bundle",
+    "description": "A bundle to create a symfony website that consumes an unite cms API.",
+    "require": {
+        "php": "^7.1.3",
+        "ext-ctype": "*",
+        "ext-iconv": "*",
+        "ext-json": "*",
+        "symfony/framework-bundle": "^4.3",
+        "symfony/yaml": "^4.3",
+        "symfony/http-client": "^4.3"
+    },
+    "autoload": {
+        "psr-4": { "Unite\\CMSWebsiteBundle\\": "" },
+        "exclude-from-classmap": [
+            "/Tests/"
+        ]
+    },
+    "autoload-dev": {
+        "psr-4": { "Tests\\App\\": "Tests/app/src" }
+    },
+    "authors": [
+        {
+            "name": "Franz Wilding",
+            "email": "franz@unite.co.at"
+        }
+    ],
+    "require-dev": {
+        "symfony/phpunit-bridge": "^4.3"
+    }
+}
