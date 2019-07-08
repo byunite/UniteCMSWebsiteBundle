@@ -35,9 +35,10 @@ class UniteCmsClient
      * @throws \Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface
      */
     public function request(string $organization, string $domain, string $authorization, string $query, array $variables = []) {
+        $baseUrl = str_replace('{organization}', $organization, $this->uniteCmsBaseUrl);
         return json_decode($this->client->request(
             'POST',
-            join('/', [$this->uniteCmsBaseUrl, $organization, $domain, 'api']),
+            join('/', [$baseUrl, $domain, 'api']),
             [
                 'json' => [
                     'query' => $query,
