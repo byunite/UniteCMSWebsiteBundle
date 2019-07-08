@@ -43,6 +43,11 @@ class Site
     protected $name;
 
     /**
+     * @var string $domain
+     */
+    protected $domain;
+
+    /**
      * @var string|null $meta_image
      */
     protected $meta_image = null;
@@ -52,12 +57,13 @@ class Site
      */
     protected $meta_description = null;
 
-    public function __construct(string $identifier, string $secretApiKey, string $publicApiKey)
+    public function __construct(string $identifier, string $domain, string $secretApiKey, string $publicApiKey)
     {
         $this->secretApiKey = $secretApiKey;
         $this->publicApiKey = $publicApiKey;
         $this->pages = new ArrayCollection();
         $this->identifier = $identifier;
+        $this->domain = $domain;
     }
 
     public function __toString() : string
@@ -135,6 +141,24 @@ class Site
     public function setIdentifier(string $identifier): self
     {
         $this->identifier = $identifier;
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getDomain(): string
+    {
+        return $this->domain;
+    }
+
+    /**
+     * @param string $domain
+     * @return Site
+     */
+    public function setDomain(string $domain): self
+    {
+        $this->domain = $domain;
         return $this;
     }
 

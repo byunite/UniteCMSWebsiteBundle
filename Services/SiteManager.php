@@ -49,7 +49,12 @@ class SiteManager
      */
     protected $queryParts;
 
-    public function __construct(BlockTypeManager $blockTypeManager, UniteCmsClient $client, TagAwareCacheInterface $cache, string $baseUrl, array $sitesMapping = [], bool $appDebug = false)
+    /**
+     * @var string $defaultDomainIdentifier
+     */
+    protected $defaultDomainIdentifier;
+
+    public function __construct(BlockTypeManager $blockTypeManager, UniteCmsClient $client, TagAwareCacheInterface $cache, string $baseUrl, array $sitesMapping = [], string $defaultDomainIdentifier, bool $appDebug = false)
     {
         $this->blockTypeManager = $blockTypeManager;
         $this->client = $client;
@@ -57,6 +62,7 @@ class SiteManager
         $this->baseUrl = $baseUrl;
         $this->sitesMapping = $sitesMapping;
         $this->appDebug = $appDebug;
+        $this->defaultDomainIdentifier = $defaultDomainIdentifier;
         $this->queryParts = New ArrayCollection([
             'find' => 'findPage',
             'sort' => [[
@@ -98,8 +104,9 @@ class SiteManager
 
         foreach($this->sitesMapping as $identifier => $siteMap) {
             if($this->matchHost($host, $identifier, $siteMap['hosts'] ?? [])) {
+                $domain = $siteMap['domain'] ?? $this->defaultDomainIdentifier;
                 return $this->loadSiteDetails(
-                    new Site($identifier, $siteMap['secret_api_key'], $siteMap['public_api_key']),
+                    new Site($identifier, $domain, $siteMap['secret_api_key'], $siteMap['public_api_key']),
                     $this->appDebug
                 );
             }
@@ -129,7 +136,7 @@ class SiteManager
                 $extract = [];
                 preg_match('/PageContentBlocksBlock([A-Z][_a-z]+)Variant/', $type->name, $extract);
                 return count($extract) == 2 ? strtolower($extract[1]) : null;
-            }, $this->client->siteRequest($site, 'campaign', 'query {
+            }, $this->client->siteRequest($site, $site->getDomain(), 'query {
               __type(name: "VariantsFieldInterface") {
                 possibleTypes {
                       name
@@ -138,7 +145,7 @@ class SiteManager
             }')->data->__type->possibleTypes));
 
             // Get all pages with all content, using only block types for this site that are available.
-            $response = $this->client->siteRequest($site, 'campaign', sprintf('query($sort: [SortInput]) {
+            $response = $this->client->siteRequest($site, $site->getDomain(), sprintf('query($sort: [SortInput]) {
                 
                 SiteSetting {
                     title,
