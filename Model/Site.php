@@ -57,6 +57,16 @@ class Site
      */
     protected $meta_description = null;
 
+    /**
+     * @var string
+     */
+    protected $text_privacy = '';
+
+    /**
+     * @var string
+     */
+    protected $text_imprint = '';
+
     public function __construct(string $identifier, string $domain, string $secretApiKey, string $publicApiKey)
     {
         $this->secretApiKey = $secretApiKey;
@@ -215,6 +225,44 @@ class Site
     public function setMetaDescription(?string $meta_description): self
     {
         $this->meta_description = $meta_description;
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getTextPrivacy(): string
+    {
+        return $this->text_privacy;
+    }
+
+    /**
+     * @param string $text_privacy
+     *
+     * @return \Unite\CMSWebsiteBundle\Model\Site
+     */
+    public function setTextPrivacy(string $text_privacy): self
+    {
+        $this->text_privacy = $text_privacy;
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getTextImprint(): string
+    {
+        return $this->text_imprint;
+    }
+
+    /**
+     * @param string $text_imprint
+     *
+     * @return \Unite\CMSWebsiteBundle\Model\Site
+     */
+    public function setTextImprint(string $text_imprint): self
+    {
+        $this->text_imprint = $text_imprint;
         return $this;
     }
 

@@ -152,7 +152,9 @@ class SiteManager
                     meta_image {
                         url
                     },
-                    meta_description
+                    meta_description,
+                    text_privacy,
+                    text_imprint
                 }
                 
                 %s(sort: $sort) {
@@ -177,6 +179,8 @@ class SiteManager
 
             $site
                 ->setName($response->data->SiteSetting->title ?? '')
+                ->setTextImprint($response->data->SiteSetting->text_imprint ?? '')
+                ->setTextPrivacy($response->data->SiteSetting->text_privacy ?? '')
                 ->setMetaImage($response->data->SiteSetting->meta_image ? $response->data->SiteSetting->meta_image->url : null)
                 ->setMetaDescription($response->data->SiteSetting->meta_description);
 
