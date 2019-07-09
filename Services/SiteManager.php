@@ -64,6 +64,15 @@ class SiteManager
         $this->appDebug = $appDebug;
         $this->defaultDomainIdentifier = $defaultDomainIdentifier;
         $this->queryParts = New ArrayCollection([
+            'site_setting_fields' => '
+                title,
+                meta_image {
+                    url
+                },
+                meta_description,
+                text_privacy,
+                text_imprint
+                facebook_app_id',
             'find' => 'findPage',
             'sort' => [[
                 'field' => 'position',
@@ -148,13 +157,7 @@ class SiteManager
             $response = $this->client->siteRequest($site, $site->getDomain(), sprintf('query($sort: [SortInput]) {
                 
                 SiteSetting {
-                    title,
-                    meta_image {
-                        url
-                    },
-                    meta_description,
-                    text_privacy,
-                    text_imprint
+                    %s
                 }
                 
                 %s(sort: $sort) {
@@ -169,6 +172,7 @@ class SiteManager
                     }
                     }
                 } %s',
+                $this->queryParts->get('site_setting_fields'),
                 $this->queryParts->get('find'),
                 $this->queryParts->get('page_fields'),
                 $this->queryParts->get('blocks_name'),
@@ -181,6 +185,7 @@ class SiteManager
                 ->setName($response->data->SiteSetting->title ?? '')
                 ->setTextImprint($response->data->SiteSetting->text_imprint ?? '')
                 ->setTextPrivacy($response->data->SiteSetting->text_privacy ?? '')
+                ->setFacebookAppId($response->data->SiteSetting->facebook_app_id ?? '')
                 ->setMetaImage($response->data->SiteSetting->meta_image ? $response->data->SiteSetting->meta_image->url : null)
                 ->setMetaDescription($response->data->SiteSetting->meta_description);
 

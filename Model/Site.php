@@ -67,6 +67,11 @@ class Site
      */
     protected $text_imprint = '';
 
+    /**
+     * @var string
+     */
+    protected $facebook_app_id = '';
+
     public function __construct(string $identifier, string $domain, string $secretApiKey, string $publicApiKey)
     {
         $this->secretApiKey = $secretApiKey;
@@ -263,6 +268,25 @@ class Site
     public function setTextImprint(string $text_imprint): self
     {
         $this->text_imprint = $text_imprint;
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getFacebookAppId(): string
+    {
+        return $this->facebook_app_id;
+    }
+
+    /**
+     * @param string $facebook_app_id
+     *
+     * @return \Unite\CMSWebsiteBundle\Model\Site
+     */
+    public function setFacebookAppId(string $facebook_app_id): self
+    {
+        $this->facebook_app_id = $facebook_app_id;
         return $this;
     }
 
