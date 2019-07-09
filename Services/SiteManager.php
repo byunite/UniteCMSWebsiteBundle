@@ -71,8 +71,7 @@ class SiteManager
                 },
                 meta_description,
                 text_privacy,
-                text_imprint
-                facebook_app_id',
+                text_imprint',
             'find' => 'findPage',
             'sort' => [[
                 'field' => 'position',
@@ -185,7 +184,6 @@ class SiteManager
                 ->setName($response->data->SiteSetting->title ?? '')
                 ->setTextImprint($response->data->SiteSetting->text_imprint ?? '')
                 ->setTextPrivacy($response->data->SiteSetting->text_privacy ?? '')
-                ->setFacebookAppId($response->data->SiteSetting->facebook_app_id ?? '')
                 ->setMetaImage($response->data->SiteSetting->meta_image ? $response->data->SiteSetting->meta_image->url : null)
                 ->setMetaDescription($response->data->SiteSetting->meta_description);
 
