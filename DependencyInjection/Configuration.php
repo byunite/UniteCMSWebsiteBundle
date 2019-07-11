@@ -21,7 +21,7 @@ class Configuration implements ConfigurationInterface
         $treeBuilder = new TreeBuilder('unite_cms_website');
         $treeBuilder->getRootNode()
             ->children()
-                ->scalarNode('multilanguage')->end()
+                ->booleanNode('multilanguage')->defaultFalse()->end()
                 ->arrayNode('site_manager_query')
                     ->addDefaultsIfNotSet()
                     ->children()
