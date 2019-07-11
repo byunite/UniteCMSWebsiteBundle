@@ -54,7 +54,7 @@ class SiteManager
      */
     protected $defaultDomainIdentifier;
 
-    public function __construct(BlockTypeManager $blockTypeManager, UniteCmsClient $client, TagAwareCacheInterface $cache, string $baseUrl, array $sitesMapping = [], string $defaultDomainIdentifier, bool $appDebug = false)
+    public function __construct(BlockTypeManager $blockTypeManager, UniteCmsClient $client, TagAwareCacheInterface $cache, string $baseUrl, string $defaultDomainIdentifier, array $queryParts = [], bool $appDebug = false, array $sitesMapping = [])
     {
         $this->blockTypeManager = $blockTypeManager;
         $this->client = $client;
@@ -63,32 +63,7 @@ class SiteManager
         $this->sitesMapping = $sitesMapping;
         $this->appDebug = $appDebug;
         $this->defaultDomainIdentifier = $defaultDomainIdentifier;
-        $this->queryParts = New ArrayCollection([
-            'site_setting_fields' => '
-                title,
-                meta_image {
-                    url
-                },
-                meta_description,
-                text_privacy,
-                text_imprint',
-            'find' => 'findPage',
-            'sort' => [[
-                'field' => 'position',
-                'order' => 'ASC',
-            ]],
-            'page_fields' => '
-                title,
-                slug { text },
-                menu_button,
-                meta_image {
-                    url
-                },
-                meta_description
-            ',
-            'blocks_name' => 'blocks',
-            'block_name' => 'block',
-        ]);
+        $this->queryParts = New ArrayCollection($queryParts);
     }
 
     public function setQueryPart(string $key, $value) : SiteManager {
@@ -105,16 +80,18 @@ class SiteManager
      *
      * @param string $host
      *
+     * @param string|null $locale
+     *
      * @return Site|null
      * @throws \Psr\Cache\InvalidArgumentException
      */
-    public function findSiteByHost(string $host) : ?Site {
+    public function findSiteByHost(string $host, string $locale = null) : ?Site {
 
         foreach($this->sitesMapping as $identifier => $siteMap) {
             if($this->matchHost($host, $identifier, $siteMap['hosts'] ?? [])) {
                 $domain = $siteMap['domain'] ?? $this->defaultDomainIdentifier;
                 return $this->loadSiteDetails(
-                    new Site($identifier, $domain, $siteMap['secret_api_key'], $siteMap['public_api_key']),
+                    new Site($identifier, $domain, $siteMap['secret_api_key'], $siteMap['public_api_key'], $locale),
                     $this->appDebug
                 );
             }
@@ -139,56 +116,87 @@ class SiteManager
                 $site->getCacheKey(),
             ]);
 
-            // Find all available block types.
-            $blockTypes = array_filter(array_map(function($type){
-                $extract = [];
-                preg_match('/PageContentBlocksBlock([A-Z][_a-z]+)Variant/', $type->name, $extract);
-                return count($extract) == 2 ? strtolower($extract[1]) : null;
-            }, $this->client->siteRequest($site, $site->getDomain(), 'query {
-              __type(name: "VariantsFieldInterface") {
-                possibleTypes {
-                      name
-                    }
-              }
-            }')->data->__type->possibleTypes));
-
-            // Get all pages with all content, using only block types for this site that are available.
-            $response = $this->client->siteRequest($site, $site->getDomain(), sprintf('query($sort: [SortInput]) {
-                
-                SiteSetting {
-                    %s
-                }
-                
-                %s(sort: $sort) {
-                    result {
-                      %s
-                      %s {
-                        %s {
-                          type
-                          %s
+            try {
+                // Find all available block types.
+                $blockTypes = array_filter(array_map(function($type){
+                    $extract = [];
+                    preg_match('/PageContentBlocksBlock([A-Z][_a-z]+)Variant/', $type->name, $extract);
+                    return count($extract) == 2 ? strtolower($extract[1]) : null;
+                }, $this->client->siteRequest($site, $site->getDomain(), 'query {
+                  __type(name: "VariantsFieldInterface") {
+                    possibleTypes {
+                          name
                         }
-                      }
-                    }
-                    }
-                } %s',
-                $this->queryParts->get('site_setting_fields'),
-                $this->queryParts->get('find'),
-                $this->queryParts->get('page_fields'),
-                $this->queryParts->get('blocks_name'),
-                $this->queryParts->get('block_name'),
-                $this->blockTypeManager->getContentBlockFragmentsUsage($site, $blockTypes),
-                $this->blockTypeManager->getContentBlockFragments($site, $blockTypes)
-            ), ['sort' => $this->queryParts->get('sort')]);
+                  }
+                }')->data->__type->possibleTypes));
 
-            $site
-                ->setName($response->data->SiteSetting->title ?? '')
-                ->setTextImprint($response->data->SiteSetting->text_imprint ?? '')
-                ->setTextPrivacy($response->data->SiteSetting->text_privacy ?? '')
-                ->setMetaImage($response->data->SiteSetting->meta_image ? $response->data->SiteSetting->meta_image->url : null)
-                ->setMetaDescription($response->data->SiteSetting->meta_description);
+                $filter = $site->getCurrentLocale() ? [
+                    'field' => 'locale',
+                    'value' => $site->getCurrentLocale(),
+                    'operator' => '='
+                ] : null;
 
-            foreach($response->data->findPage->result as $page) {
-                $site->addPage(Page::fromGraphQLResponse($page));
+                if(!empty($this->queryParts->get('filter'))) {
+                    $filter = empty($filter) ? $this->queryParts->get('filter') : [
+                        'AND' => [
+                            $filter,
+                            $this->queryParts->get('filter'),
+                        ]
+                    ];
+                }
+
+                // Get all pages with all content, using only block types for this site that are available.
+                $query = sprintf('query($sort: [SortInput], $filter: FilterInput) {
+                    
+                    SiteSetting {
+                        %s
+                    }
+                    
+                    %s(sort: $sort, filter: $filter) {
+                        result {
+                          %s
+                          %s {
+                            %s {
+                              type
+                              %s
+                            }
+                          }
+                        }
+                        }
+                    } %s',
+                    $this->queryParts->get('site_setting_fields'),
+                    $this->queryParts->get('find_pages_query'),
+                    $this->queryParts->get('page_fields'),
+                    $this->queryParts->get('blocks_name'),
+                    $this->queryParts->get('block_name'),
+                    $this->blockTypeManager->getContentBlockFragmentsUsage($site, $blockTypes),
+                    $this->blockTypeManager->getContentBlockFragments($site, $blockTypes)
+                );
+                $variables = [
+                    'sort' => $this->queryParts->get('sort'),
+                    'filter' => $filter,
+                ];
+
+                $response = $this->client->siteRequest($site, $site->getDomain(), $query, $variables);
+
+                foreach(get_object_vars($response->data->SiteSetting) as $key => $value) {
+                    if($key === 'title') {
+                        $site->setName($value);
+                    } else {
+                        $site->set($key, $value);
+                    }
+                }
+
+                foreach($response->data->findPage->result as $page) {
+                    $site->addPage(Page::fromGraphQLResponse($page));
+                }
+            } catch (\Exception $e) {
+                throw new \ErrorException(sprintf("Error while calling the graphql endpoint: '%s'. \n\nGraphQL Response: %s \n\nGraphQL Query: %s\n\nGraphQL Variables: %s",
+                    $e->getMessage(),
+                    json_encode($response, JSON_PRETTY_PRINT),
+                    $query,
+                    json_encode($query, JSON_PRETTY_PRINT)
+                ));
             }
 
             return $site;

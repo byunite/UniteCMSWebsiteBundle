@@ -1,11 +1,11 @@
 {% set title = title is defined ? title :
     (site.currentPage ?
-        ((site.currentPage.meta_title is defined and site.currentPage.meta_title ? site.currentPage.meta_title : site.currentPage) ~ ' | ' ~ site)
+        ((site.currentPage.get('meta_title') ? site.currentPage.get('meta_title') : site.currentPage) ~ ' | ' ~ site)
         : site
     )
 %}
-{% set description = site.currentPage and site.currentPage.metaDescription is defined and site.currentPage.metaDescription ? site.currentPage.metaDescription : site.metaDescription %}
-{% set image = site.currentPage and site.currentPage.metaImage is defined and site.currentPage.metaImage ? site.currentPage.metaImage : site.metaImage %}
+{% set description = site.currentPage and site.currentPage.get('meta_description') ? site.currentPage.get('meta_description') : site.get('meta_description') %}
+{% set image = site.currentPage and site.currentPage.get('meta_image') ? site.currentPage.get('meta_image') : site.get('meta_image') %}
 <title>{{ title }}</title>
 <meta name="title" content="{{ title }}">
 <meta property="og:site_name" content="{{ title }}">
@@ -18,7 +18,7 @@
     <meta property="og:description" content="{{ description }}">
     <meta name="twitter:description" content="{{ description }}">
 {% endif %}
-{% if image %}
-    <meta property="og:image" content="{{ image }}">
-    <meta name="twitter:image" content="{{ image }}">
+{% if image and image.url %}
+    <meta property="og:image" content="{{ image.url }}">
+    <meta name="twitter:image" content="{{ image.url }}">
 {% endif %}

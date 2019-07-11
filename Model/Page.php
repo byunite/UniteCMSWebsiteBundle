@@ -25,24 +25,19 @@ class Page
     protected $name = '';
 
     /**
+     * @var string|null
+     */
+    protected $locale = null;
+
+    /**
      * @var string $slug
      */
     protected $slug = '';
 
     /**
-     * @var string|null $menu_button
+     * @var ArrayCollection $data
      */
-    protected $menu_button = null;
-
-    /**
-     * @var string|null $meta_image
-     */
-    protected $meta_image = null;
-
-    /**
-     * @var string|null $meta_description
-     */
-    protected $meta_description = null;
+    protected $data;
 
     /**
      * @var PageContentBlock[]|ArrayCollection $contentBlocks
@@ -54,18 +49,21 @@ class Page
         $this->name = $name;
         $this->slug = trim($slug, '/');
         $this->contentBlocks = new ArrayCollection();
+        $this->data = new ArrayCollection();
     }
 
     /**
      * @param object $response
-     * @return \App\Model\Page
+     * @return Page
      */
     static function fromGraphQLResponse($response) : Page {
         $page = new Page($response->title, $response->slug->text);
-        $page
-            ->setMenuButton($response->menu_button)
-            ->setMetaImage($response->meta_image ? $response->meta_image->url : null)
-            ->setMetaDescription($response->meta_description);
+
+        foreach(get_object_vars($response) as $key => $value) {
+            if(!in_array($key, ['title', 'slug', 'blocks'])) {
+                $page->set($key, $value);
+            }
+        }
 
         foreach($response->blocks as $row) {
             $page->addContentBlock(PageContentBlock::fromGraphQLResponse($row->block));
@@ -89,7 +87,7 @@ class Page
 
     /**
      * @param Site $site
-     * @return \App\Model\Page
+     * @return Page
      */
     public function setSite(Site $site) : self
     {
@@ -108,7 +106,7 @@ class Page
     /**
      * @param string $name
      *
-     * @return \App\Model\Page
+     * @return Page
      */
     public function setName(string $name): self
     {
@@ -127,67 +125,11 @@ class Page
     /**
      * @param string $slug
      *
-     * @return \App\Model\Page
+     * @return Page
      */
     public function setSlug(string $slug): self
     {
         $this->slug = $slug;
-        return $this;
-    }
-
-    /**
-     * @return string|null
-     */
-    public function getMenuButton(): ?string
-    {
-        return $this->menu_button;
-    }
-
-    /**
-     * @param string|null $menu_button
-     *
-     * @return \App\Model\Page
-     */
-    public function setMenuButton(?string $menu_button): self
-    {
-        $this->menu_button = $menu_button;
-        return $this;
-    }
-
-    /**
-     * @return string|null
-     */
-    public function getMetaImage(): ?string
-    {
-        return $this->meta_image;
-    }
-
-    /**
-     * @param string|null $meta_image
-     *
-     * @return \App\Model\Page
-     */
-    public function setMetaImage(?string $meta_image): self
-    {
-        $this->meta_image = $meta_image;
-        return $this;
-    }
-
-    /**
-     * @return string|null
-     */
-    public function getMetaDescription(): ?string
-    {
-        return $this->meta_description;
-    }
-
-    /**
-     * @param string|null $meta_description
-     * @return \App\Model\Page
-     */
-    public function setMetaDescription(?string $meta_description): self
-    {
-        $this->meta_description = $meta_description;
         return $this;
     }
 
@@ -202,7 +144,7 @@ class Page
     /**
      * @param int $position
      *
-     * @return \App\Model\Page
+     * @return Page
      */
     public function setPosition(int $position): self
     {
@@ -211,7 +153,7 @@ class Page
     }
 
     /**
-     * @return \App\Model\PageContentBlock[]|\Doctrine\Common\Collections\ArrayCollection
+     * @return PageContentBlock[]|\Doctrine\Common\Collections\ArrayCollection
      */
     public function getContentBlocks()
     {
@@ -221,7 +163,7 @@ class Page
     /**
      * @param iterable $contentBlocks
      *
-     * @return \App\Model\Page
+     * @return Page
      */
     public function setContentBlocks(iterable $contentBlocks): self
     {
@@ -233,9 +175,9 @@ class Page
     }
 
     /**
-     * @param \App\Model\PageContentBlock $contentBlock
+     * @param PageContentBlock $contentBlock
      *
-     * @return \App\Model\Page
+     * @return Page
      */
     public function addContentBlock(PageContentBlock $contentBlock) : self
     {
@@ -245,5 +187,35 @@ class Page
             ->setPage($this);
 
         return $this;
+    }
+
+    /**
+     * @param string $key
+     * @param mixed|null $default
+     *
+     * @return mixed|null
+     */
+    public function get(string $key, $default = null) {
+        return $this->data->get($key) ?? $default;
+    }
+
+    /**
+     * @param string $key
+     * @param $value
+     *
+     * @return Page
+     */
+    public function set(string $key, $value) : self {
+        $this->data->set($key, $value);
+        return $this;
+    }
+
+    /**
+     * @param string $key
+     *
+     * @return bool
+     */
+    public function has(string $key) : bool {
+        return $this->has($key);
     }
 }

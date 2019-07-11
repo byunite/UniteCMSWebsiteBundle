@@ -23,10 +23,16 @@ class RequestSiteInjectorListener implements EventSubscriberInterface
      */
     protected $router;
 
-    public function __construct(SiteManager $siteManager, RouterInterface $router)
+    /**
+     * @var bool
+     */
+    protected $multiLanguage;
+
+    public function __construct(SiteManager $siteManager, RouterInterface $router, bool $multiLanguage = false)
     {
         $this->siteManager = $siteManager;
         $this->router = $router;
+        $this->multiLanguage = $multiLanguage;
     }
 
     /**
@@ -50,7 +56,10 @@ class RequestSiteInjectorListener implements EventSubscriberInterface
         }
 
         // Store the full site object to the current request.
-        if($site = $this->siteManager->findSiteByHost($event->getRequest()->getHost())) {
+        if($site = $this->siteManager->findSiteByHost(
+            $event->getRequest()->getHost(),
+            $this->multiLanguage ? $event->getRequest()->getLocale() : null
+        )) {
             $event->getRequest()->attributes->set(self::ATTRIBUTE_KEY, $site);
             return;
         }

@@ -28,6 +28,11 @@ class Site
     protected $currentSlug = null;
 
     /**
+     * @var null|string $currentLocale
+     */
+    protected $currentLocale = null;
+
+    /**
      * @var ArrayCollection|Page[] $pages
      */
     protected $pages;
@@ -48,32 +53,19 @@ class Site
     protected $domain;
 
     /**
-     * @var string|null $meta_image
+     * @var ArrayCollection $data
      */
-    protected $meta_image = null;
+    protected $data;
 
-    /**
-     * @var string|null $meta_description
-     */
-    protected $meta_description = null;
-
-    /**
-     * @var string
-     */
-    protected $text_privacy = '';
-
-    /**
-     * @var string
-     */
-    protected $text_imprint = '';
-
-    public function __construct(string $identifier, string $domain, string $secretApiKey, string $publicApiKey)
+    public function __construct(string $identifier, string $domain, string $secretApiKey, string $publicApiKey, string $currentLocale = null)
     {
         $this->secretApiKey = $secretApiKey;
         $this->publicApiKey = $publicApiKey;
         $this->pages = new ArrayCollection();
+        $this->data = new ArrayCollection();
         $this->identifier = $identifier;
         $this->domain = $domain;
+        $this->currentLocale = $currentLocale;
     }
 
     public function __toString() : string
@@ -98,6 +90,24 @@ class Site
 
     public function getCurrentPage() : ?Page {
         return ($this->currentSlug !== null) ? $this->pages->get($this->currentSlug) : null;
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getCurrentLocale(): ?string
+    {
+        return $this->currentLocale;
+    }
+
+    /**
+     * @param string|null $currentLocale
+     * @return Site
+     */
+    public function setCurrentLocale(?string $currentLocale): self
+    {
+        $this->currentLocale = $currentLocale;
+        return $this;
     }
 
     /**
@@ -194,81 +204,6 @@ class Site
     /**
      * @return string|null
      */
-    public function getMetaImage(): ?string
-    {
-        return $this->meta_image;
-    }
-
-    /**
-     * @param string|null $meta_image
-     * @return Site
-     */
-    public function setMetaImage(?string $meta_image): self
-    {
-        $this->meta_image = $meta_image;
-        return $this;
-    }
-
-    /**
-     * @return string|null
-     */
-    public function getMetaDescription(): ?string
-    {
-        return $this->meta_description;
-    }
-
-    /**
-     * @param string|null $meta_description
-     *
-     * @return Site
-     */
-    public function setMetaDescription(?string $meta_description): self
-    {
-        $this->meta_description = $meta_description;
-        return $this;
-    }
-
-    /**
-     * @return string
-     */
-    public function getTextPrivacy(): string
-    {
-        return $this->text_privacy;
-    }
-
-    /**
-     * @param string $text_privacy
-     *
-     * @return \Unite\CMSWebsiteBundle\Model\Site
-     */
-    public function setTextPrivacy(string $text_privacy): self
-    {
-        $this->text_privacy = $text_privacy;
-        return $this;
-    }
-
-    /**
-     * @return string
-     */
-    public function getTextImprint(): string
-    {
-        return $this->text_imprint;
-    }
-
-    /**
-     * @param string $text_imprint
-     *
-     * @return \Unite\CMSWebsiteBundle\Model\Site
-     */
-    public function setTextImprint(string $text_imprint): self
-    {
-        $this->text_imprint = $text_imprint;
-        return $this;
-    }
-
-    /**
-     * @return string|null
-     */
     public function getCustomTemplate(): ?string
     {
         return self::CUSTOM_SITE_TEMPLATE_PATH . $this->getIdentifier();
@@ -294,7 +229,7 @@ class Site
     }
 
     /**
-     * @return \App\Model\Page[]|\Doctrine\Common\Collections\ArrayCollection
+     * @return Page[]|\Doctrine\Common\Collections\ArrayCollection
      */
     public function getPages()
     {
@@ -319,5 +254,35 @@ class Site
         $this->pages->set($page->getSlug(), $page);
         $page->setPosition($this->pages->count() - 1)->setSite($this);
         return $this;
+    }
+
+    /**
+     * @param string $key
+     * @param mixed|null $default
+     *
+     * @return mixed|null
+     */
+    public function get(string $key, $default = null) {
+        return $this->data->get($key) ?? $default;
+    }
+
+    /**
+     * @param string $key
+     * @param $value
+     *
+     * @return \Unite\CMSWebsiteBundle\Model\Site
+     */
+    public function set(string $key, $value) : self {
+        $this->data->set($key, $value);
+        return $this;
+    }
+
+    /**
+     * @param string $key
+     *
+     * @return bool
+     */
+    public function has(string $key) : bool {
+        return $this->has($key);
     }
 }
