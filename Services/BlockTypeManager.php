@@ -47,8 +47,6 @@ class BlockTypeManager
 
         if($this->appDebug && empty($blockType) && function_exists('dump')) {
             dump('MISSING TYPE: ' . $type);
-            dump($site);
-            dump($this);
         }
 
         return $blockType;

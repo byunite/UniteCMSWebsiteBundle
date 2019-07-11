@@ -7,6 +7,7 @@ use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\HttpKernel\DependencyInjection\Extension;
 use Symfony\Component\DependencyInjection\Loader;
+use Unite\CMSWebsiteBundle\EventSubscriber\RequestSiteInjectorListener;
 use Unite\CMSWebsiteBundle\Services\SiteManager;
 
 class UniteCMSWebsiteExtension extends Extension
@@ -25,5 +26,8 @@ class UniteCMSWebsiteExtension extends Extension
 
         $definition = $container->getDefinition(SiteManager::class);
         $definition->setArgument('$queryParts', $config['site_manager_query']);
+
+        $definition = $container->getDefinition(RequestSiteInjectorListener::class);
+        $definition->setArgument('$multiLanguage', (bool)$config['multilanguage']);
     }
 }
