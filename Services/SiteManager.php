@@ -173,8 +173,8 @@ class SiteManager
                     $this->blockTypeManager->getContentBlockFragments($site, $blockTypes)
                 );
                 $variables = [
-                    'sort' => $this->queryParts->get('sort'),
-                    'filter' => $filter,
+                    'sort' => $this->queryParts->get('find_pages_sort'),
+                    'filter' => $this->queryParts->get('find_pages_filter'),
                 ];
 
                 $response = $this->client->siteRequest($site, $site->getDomain(), $query, $variables);
