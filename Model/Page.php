@@ -39,12 +39,15 @@ class Page
      */
     protected $contentBlocks;
 
+    protected $translations;
+
     public function __construct(string $name, string $slug)
     {
         $this->name = $name;
         $this->slug = trim($slug, '/');
         $this->contentBlocks = new ArrayCollection();
         $this->data = new ArrayCollection();
+        $this->translations = new ArrayCollection();
     }
 
     /**
@@ -55,13 +58,24 @@ class Page
         $page = new Page($response->title, $response->slug->text);
 
         foreach(get_object_vars($response) as $key => $value) {
-            if(!in_array($key, ['title', 'slug', 'blocks'])) {
+            if(!in_array($key, ['title', 'slug', 'blocks', 'translations', 'locale'])) {
                 $page->set($key, $value);
+            }
+
+            // Allow access translations directly.
+            if($key == 'translations') {
+                foreach($value as $translation) {
+                    if(!empty($translation->locale) && !empty($translation->title) && !empty($translation->slug)) {
+                        $page->addTranslation($translation->locale, Page::fromGraphQLResponse($translation));
+                    }
+                }
             }
         }
 
-        foreach($response->blocks as $row) {
-            $page->addContentBlock(PageContentBlock::fromGraphQLResponse($row->block));
+        if(!empty($response->blocks)) {
+            foreach ($response->blocks as $row) {
+                $page->addContentBlock(PageContentBlock::fromGraphQLResponse($row->block));
+            }
         }
 
         return $page;
@@ -181,6 +195,31 @@ class Page
             ->setPosition($this->contentBlocks->count() - 1)
             ->setPage($this);
 
+        return $this;
+    }
+
+    /**
+     * @return ArrayCollection|Page[]
+     */
+    public function getTranslations() : ArrayCollection {
+        return $this->translations;
+    }
+
+    /**
+     * @param string $locale
+     * @return Page|null
+     */
+    public function getTranslation(string $locale) : ?Page {
+        return $this->translations->get($locale);
+    }
+
+    /**
+     * @param string $locale
+     * @param Page $page
+     * @return Page
+     */
+    public function addTranslation(string $locale, Page $page): self {
+        $this->translations->set($locale, $page);
         return $this;
     }
 
