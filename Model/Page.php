@@ -25,11 +25,6 @@ class Page
     protected $name = '';
 
     /**
-     * @var string|null
-     */
-    protected $locale = null;
-
-    /**
      * @var string $slug
      */
     protected $slug = '';

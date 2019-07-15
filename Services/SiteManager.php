@@ -174,7 +174,7 @@ class SiteManager
                 );
                 $variables = [
                     'sort' => $this->queryParts->get('find_pages_sort'),
-                    'filter' => $this->queryParts->get('find_pages_filter'),
+                    'filter' => $filter,
                 ];
 
                 $response = $this->client->siteRequest($site, $site->getDomain(), $query, $variables);
