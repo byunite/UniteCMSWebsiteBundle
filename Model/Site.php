@@ -75,7 +75,7 @@ class Site
 
     public function getCacheKey() : string
     {
-        return self::CACHE_KEY_PREFIX . '.' . $this->getIdentifier();
+        return self::CACHE_KEY_PREFIX . '.' . $this->getIdentifier() . ($this->currentLocale ? '.' . $this->currentLocale : null);
     }
 
     public function setCurrentSlug(string $currentSlug) : self {
