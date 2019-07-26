@@ -4,6 +4,7 @@
 namespace Unite\CMSWebsiteBundle\Services;
 
 
+use Unite\CMSWebsiteBundle\Exception\RedirectException;
 use Unite\CMSWebsiteBundle\Model\Page;
 use Unite\CMSWebsiteBundle\Model\Site;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -83,12 +84,17 @@ class SiteManager
      * @param string|null $locale
      *
      * @return Site|null
-     * @throws \Psr\Cache\InvalidArgumentException
+     * @throws RedirectException
      */
     public function findSiteByHost(string $host, string $locale = null) : ?Site {
 
         foreach($this->sitesMapping as $identifier => $siteMap) {
             if($this->matchHost($host, $identifier, $siteMap['hosts'] ?? [])) {
+
+                if(!empty($siteMap['fixed_host']) && $siteMap['fixed_host'] !== $host) {
+                    throw new RedirectException($siteMap['fixed_host']);
+                }
+
                 $domain = $siteMap['domain'] ?? $this->defaultDomainIdentifier;
                 return $this->loadSiteDetails(
                     new Site($identifier, $domain, $siteMap['secret_api_key'], $siteMap['public_api_key'], $locale),

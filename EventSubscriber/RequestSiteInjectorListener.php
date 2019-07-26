@@ -3,8 +3,10 @@
 
 namespace Unite\CMSWebsiteBundle\EventSubscriber;
 
+use Unite\CMSWebsiteBundle\Exception\RedirectException;
 use Unite\CMSWebsiteBundle\Services\SiteManager;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\RouterInterface;
@@ -56,11 +58,20 @@ class RequestSiteInjectorListener implements EventSubscriberInterface
         }
 
         // Store the full site object to the current request.
-        if($site = $this->siteManager->findSiteByHost(
-            $event->getRequest()->getHost(),
-            $this->multiLanguage ? $event->getRequest()->getLocale() : null
-        )) {
-            $event->getRequest()->attributes->set(self::ATTRIBUTE_KEY, $site);
+        try {
+            if($site = $this->siteManager->findSiteByHost(
+                $event->getRequest()->getHost(),
+                $this->multiLanguage ? $event->getRequest()->getLocale() : null
+            )) {
+                $event->getRequest()->attributes->set(self::ATTRIBUTE_KEY, $site);
+                return;
+            }
+        } catch (RedirectException $exception) {
+            $event->setResponse(new RedirectResponse(
+                (substr($exception->getRedirect(), 0, 4) != 'http' ? $event->getRequest()->getScheme() . '://' : '') .
+                $exception->getRedirect() .
+                ($event->getRequest()->getPort() != 80 ? ':' . $event->getRequest()->getPort() : '')
+            ));
             return;
         }
 
